@@ -7,7 +7,7 @@ Usage:
 format of `flickr_pgh.csv`:
 
     photo_id,username,lat,lon
-
+Then:
     ./add_autotags.py --city_csv_file=flickr_pgh.csv --autotags_file=../yfcc100m_autotags --output_file=flickr_pgh_autotags.csv
 
 format of `flickr_pgh_autotags.csv`:

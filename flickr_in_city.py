@@ -3,10 +3,11 @@
 # Inputs: a YFCC100M file and a city name.
 # Output: a csv with photo_id,username,lat,lon
 
-import argparse, csv, multiprocessing, os, signal
+import argparse, csv, multiprocessing, os, signal, util
 parser = argparse.ArgumentParser()
 parser.add_argument('--yfcc_file', default='yfcc100m_1k.tsv')
-parser.add_argument('--autotags_file', default='yfcc100m_autotags_1k.tsv')
+parser.add_argument('--city', default='pgh',choices=util.CITY_LOCATIONS.keys())
+#['pgh','ny','sf','houston', 'detroit', 'chicago', ...
 parser.add_argument('--num_processes', type=int, default=multiprocessing.cpu_count())
 args = parser.parse_args()
 
