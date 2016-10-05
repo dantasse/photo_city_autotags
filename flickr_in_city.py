@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 # Inputs: a YFCC100M file and a city name.
-# Output: a csv with photo_id,username,lat,lon
+# Output: a csv with photo_id,nsid,lat,lon
+# (nsid = a user ID, it usually looks like 12345678@N00)
 
-import argparse, csv, multiprocessing, os, signal, util
+import argparse, csv, multiprocessing, os, signal, time, util, json
 parser = argparse.ArgumentParser()
 parser.add_argument('--yfcc_file', default='yfcc100m_1k.tsv')
 parser.add_argument('--city', default='pgh',choices=util.CITY_LOCATIONS.keys())
@@ -17,11 +18,13 @@ csv.field_size_limit(200*1000) # There are some big fields in YFCC100M.
 def init_process(q):
     # Ignore SIGINT so we can easily ctrl-c.
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    process_some_rows.output_queue = q
+    process_some_rows.output_queue = q # basically global, whatever
     
 def process_some_rows(start_point, end_point):
     infile = open(args.yfcc_file)
     infile.seek(start_point)
+    city_bounds = [float(x) for x in util.CITY_LOCATIONS[args.city]['locations'].split(',')]
+    print city_bounds
     
     # This block is to clear out whatever partial line you're on.
     if start_point != 0:
@@ -40,10 +43,12 @@ def process_some_rows(start_point, end_point):
             lines_skipped += 1 # No geotagging on this photo.
         else:
             photo_id = row[1]
-            username = row[4] # TODO use NSID instead?
-            lat = float(row[12])
-            lon = float(row[13])
-            process_some_rows.output_queue.put([photo_id, username, lat, lon])
+            nsid = row[3] # user ID
+            lon = float(row[12])
+            lat = float(row[13])
+            if lat > city_bounds[1] and lat < city_bounds[3] and \
+                    lon > city_bounds[0] and lon < city_bounds[2]:
+                process_some_rows.output_queue.put([photo_id, nsid, lat, lon])
 
         if infile.tell() > end_point:
             process_some_rows.output_queue.put(None)
@@ -56,7 +61,7 @@ if __name__ == '__main__':
     end_indices = start_indices[1:] + [file_size]
 
     output_queue = multiprocessing.Queue()
-    print "Starting processing with %s processes." % args.num_processes
+    print "%s\tStarting processing with %s processes" % (time.asctime(), args.num_processes)
     worker_pool = multiprocessing.Pool(args.num_processes, init_process, (output_queue,))
 
     try:
@@ -68,15 +73,15 @@ if __name__ == '__main__':
         for res in results:
             lines_skipped += res.get()
 
-        print "Starting the writer now."
+        print "%s\tStarting the writer now" % time.asctime()
         output_file = csv.writer(open(args.output_file, 'w'))
-        nones = 0 # Listen for N nones so the processes all close
+        nones = 0 # Listen for N Nones so the processes all close
         writes = 0
         while True:
             line = output_queue.get()
             if line == None:
                 nones += 1
-                if nones >= args.num_processes: # TODO why -1
+                if nones >= args.num_processes:
                     break
             else:
                 writes += 1
@@ -87,7 +92,7 @@ if __name__ == '__main__':
         worker_pool.terminate()
         worker_pool.join()
     else:
-        print "Quitting normally."
+        print "%s\tQuitting normally." % time.asctime()
         worker_pool.close()
         worker_pool.join()
 
