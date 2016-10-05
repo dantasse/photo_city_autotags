@@ -16,3 +16,4 @@ format of `flickr_pgh_autotags.csv`:
 
     photo_id,nsid,lat,lon,autotags_90plus,autotags
 
+You can also run `make_all_yfcc100m_city_dumps.sh` to just generate all the CSV files for each city.
