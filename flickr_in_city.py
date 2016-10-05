@@ -6,7 +6,7 @@
 
 import argparse, csv, multiprocessing, os, signal, time, util, json
 parser = argparse.ArgumentParser()
-parser.add_argument('--yfcc_file', default='yfcc100m_1k.tsv')
+parser.add_argument('--yfcc_file', default='../yfcc100m_1k.tsv')
 parser.add_argument('--city', default='pgh',choices=util.CITY_LOCATIONS.keys())
 #['pgh','ny','sf','houston', 'detroit', 'chicago', ...
 parser.add_argument('--num_processes', type=int, default=multiprocessing.cpu_count())
@@ -24,7 +24,6 @@ def process_some_rows(start_point, end_point):
     infile = open(args.yfcc_file)
     infile.seek(start_point)
     city_bounds = [float(x) for x in util.CITY_LOCATIONS[args.city]['locations'].split(',')]
-    print city_bounds
     
     # This block is to clear out whatever partial line you're on.
     if start_point != 0:
