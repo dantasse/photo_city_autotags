@@ -1,4 +1,6 @@
-# `photo_city_autotags`
+# Edit: this is obsolete
+It's now part of the https://github.com/dantasse/neighborhood_guides repository.
+
 Turning the YFCC100M dataset into small files representing a city area. For example, you might want all the yfcc100m Flickr photos in Pittsburgh plus their autotags.
 
 ## Input/output
